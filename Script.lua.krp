@@ -17,7 +17,7 @@ local Window = Rayfield:CreateWindow({
     DisableBuildWarnings = true,
 })
 
-local Tab = Window:CreateTab("Chính", 4483362458)
+local Tab = Window:CreateTab("Chức Năng Chính", 4483362458)
 
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
