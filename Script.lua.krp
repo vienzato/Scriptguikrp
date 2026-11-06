@@ -308,19 +308,6 @@ Tab:CreateToggle({
     end,
 })
 
--- ==================== NÚT 5: CHỐNG KẸT + THANH KÉO (MAX 180) ====================
-local antiStuckActive = false
-local antiStuckHeight = 80
-local antiStuckConnection = nil
-
-local function triggerAntiStuck()
-    if not antiStuckActive then return end
-    local char = LocalPlayer.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if hrp then
-        hrp.CFrame = hrp.CFrame + Vector3.new(0, antiStuckHeight, 0)
-    end
-end
 
 Tab:CreateToggle({
     Name = "5. Bật Chống Kẹt (Cấp lại sau 4s khi die/reset)",
