@@ -9,10 +9,12 @@ end
 
 local Window = Rayfield:CreateWindow({
     Name = "Custom Hub - Viễn",
-    LoadingTitle = "Đang khởi tạo giao diện...",
-    LoadingSubtitle = "By Viễn",
+    LoadingTitle = "",
+    LoadingSubtitle = "",
     ConfigurationSaving = { Enabled = false },
     KeySystem = false,
+    DisableRayfieldPrompts = true,
+    DisableBuildWarnings = true,
 })
 
 local Tab = Window:CreateTab("Chính", 4483362458)
