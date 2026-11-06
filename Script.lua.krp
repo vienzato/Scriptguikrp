@@ -218,51 +218,94 @@ Tab:CreateSlider({
     end,
 })
 
--- ==================== NÚT 4: TOOL LƯU & TP VĨNH VIỄN ====================
-Tab:CreateButton({
-    Name = "4. Nhận Tool Lưu & TP Tọa Độ",
-    Callback = function()
-        local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-        local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
-        if not backpack then return end
+-- ==================== NÚT 4: TOOL LƯU & TP VĨNH VIỄN (TOGGLE) ====================
+local saveTpActive = false
+local saveTpConnection = nil
+local savedCFrame = nil
+local currentSaveTool = nil
 
-        for _, v in pairs(backpack:GetChildren()) do
-            if v.Name == "SaveTpTool" then v:Destroy() end
+local function removeSaveTpTool()
+    savedCFrame = nil
+    if currentSaveTool and currentSaveTool.Parent then
+        currentSaveTool:Destroy()
+    end
+    currentSaveTool = nil
+end
+
+local function giveSaveTpTool()
+    if not saveTpActive then return end
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
+    if not backpack then return end
+
+    -- Xóa tool cũ nếu có trước khi cấp mới
+    removeSaveTpTool()
+
+    local tool = Instance.new("Tool")
+    tool.Name = "SaveTpTool"
+    tool.RequiresHandle = false
+    tool.ToolTip = "Click lần 1: Lưu tọa độ vĩnh viễn | Click lần 2+: Dịch chuyển"
+
+    tool.Activated:Connect(function()
+        local hrp = char:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+
+        if not savedCFrame then
+            -- Lưu tọa độ lần đầu duy nhất và đổi tên thành TP
+            savedCFrame = hrp.CFrame
+            tool.Name = "TP"
+            tool.ToolTip = "Click để dịch chuyển về vị trí đã lưu"
+            Rayfield:Notify({
+                Title = "Đã lưu tọa độ vĩnh viễn!",
+                Content = "Tool đã đổi thành [TP]. Click tiếp để dịch chuyển về đây.",
+                Duration = 3,
+            })
+        else
+            -- TP về vị trí đã lưu
+            hrp.CFrame = savedCFrame
         end
-        if char:FindFirstChild("SaveTpTool") then char.SaveTpTool:Destroy() end
+    end)
 
-        local tool = Instance.new("Tool")
-        tool.Name = "SaveTpTool"
-        tool.RequiresHandle = false
-        tool.ToolTip = "Click lần 1: Lưu tọa độ | Click lần 2+: Dịch chuyển đến chỗ lưu"
+    tool.Destroying:Connect(function()
+        if currentSaveTool == tool then
+            currentSaveTool = nil
+        end
+    end)
 
-        local savedCFrame = nil
+    currentSaveTool = tool
+    tool.Parent = backpack
+end
 
-        tool.Activated:Connect(function()
-            local hrp = char:FindFirstChild("HumanoidRootPart")
-            if not hrp then return end
-
-            if not savedCFrame then
-                savedCFrame = hrp.CFrame
-                Rayfield:Notify({
-                    Title = "Đã lưu tọa độ!",
-                    Content = "Tool đã chuyển thành Tool TP đến vị trí này (chỉ lưu 1 lần duy nhất).",
-                    Duration = 3,
-                })
-                tool.ToolTip = "TP về vị trí đã lưu"
-            else
-                hrp.CFrame = savedCFrame
-            end
-        end)
-
-        tool.Parent = backpack
-        Rayfield:Notify({
-            Title = "Nhận Tool Lưu Thành Công",
-            Content = "Hãy cầm tool và click để lưu vị trí hiện tại.",
-            Duration = 3,
-        })
+Tab:CreateToggle({
+    Name = "4. Tool Lưu & TP Tọa Độ (Cấp lại sau 3s khi die/reset)",
+    CurrentValue = false,
+    Flag = "ToggleSaveTpTool",
+    Callback = function(Value)
+        saveTpActive = Value
+        if Value then
+            giveSaveTpTool()
+            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local humanoid = char:WaitForChild("Humanoid")
+            if saveTpConnection then saveTpConnection:Disconnect() end
+            saveTpConnection = humanoid.Died:Connect(function()
+                if saveTpActive then
+                    task.wait(3)
+                    giveSaveTpTool()
+                end
+            end)
+        else
+            -- Tắt công tắc: Xóa tool và mất luôn tọa độ
+            if saveTpConnection then saveTpConnection:Disconnect() end
+            removeSaveTpTool()
+            Rayfield:Notify({
+                Title = "Đã tắt Tool Lưu & TP",
+                Content = "Tool và tọa độ đã được xóa sạch.",
+                Duration = 2,
+            })
+        end
     end,
 })
+
 
 -- ==================== NÚT 5: CHỐNG KẸT + THANH KÉO (MAX 180) ====================
 local antiStuckActive = false
