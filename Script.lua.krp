@@ -218,11 +218,11 @@ Tab:CreateSlider({
     end,
 })
 
--- ==================== NÚT 4: TOOL LƯU & TP VĨNH VIỄN (TOGGLE) ====================
+-- ==================== NÚT 4: TOOL LƯU & TP VĨNH VIỄN (FIXED DIED) ====================
 local saveTpActive = false
-local saveTpConnection = nil
 local savedCFrame = nil
 local currentSaveTool = nil
+local charConnection = nil
 
 local function removeSaveTpTool()
     savedCFrame = nil
@@ -234,11 +234,11 @@ end
 
 local function giveSaveTpTool()
     if not saveTpActive then return end
-    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded
+    if not char then return end
     local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
     if not backpack then return end
 
-    -- Xóa tool cũ nếu có trước khi cấp mới
     removeSaveTpTool()
 
     local tool = Instance.new("Tool")
@@ -247,21 +247,20 @@ local function giveSaveTpTool()
     tool.ToolTip = "Click lần 1: Lưu tọa độ vĩnh viễn | Click lần 2+: Dịch chuyển"
 
     tool.Activated:Connect(function()
-        local hrp = char:FindFirstChild("HumanoidRootPart")
+        local currentCharacter = LocalPlayer.Character
+        local hrp = currentCharacter and currentCharacter:FindFirstChild("HumanoidRootPart")
         if not hrp then return end
 
         if not savedCFrame then
-            -- Lưu tọa độ lần đầu duy nhất và đổi tên thành TP
             savedCFrame = hrp.CFrame
             tool.Name = "TP"
             tool.ToolTip = "Click để dịch chuyển về vị trí đã lưu"
             Rayfield:Notify({
                 Title = "Đã lưu tọa độ vĩnh viễn!",
-                Content = "Tool đã đổi thành [TP]. Click tiếp để dịch chuyển về đây.",
+                Content = "Tool đã đổi thành [TP]. Click tiếp để dịch chuyển.",
                 Duration = 3,
             })
         else
-            -- TP về vị trí đã lưu
             hrp.CFrame = savedCFrame
         end
     end)
@@ -284,18 +283,37 @@ Tab:CreateToggle({
         saveTpActive = Value
         if Value then
             giveSaveTpTool()
-            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-            local humanoid = char:WaitForChild("Humanoid")
-            if saveTpConnection then saveTpConnection:Disconnect() end
-            saveTpConnection = humanoid.Died:Connect(function()
-                if saveTpActive then
-                    task.wait(3)
-                    giveSaveTpTool()
+            if charConnection then charConnection:Disconnect() end
+            
+            -- Lắng nghe mỗi khi nhân vật chết và hồi sinh
+            charConnection = LocalPlayer.CharacterAdded:Connect(function(newChar)
+                if not saveTpActive then return end
+                local humanoid = newChar:WaitForChild("Humanoid", 5)
+                if humanoid then
+                    humanoid.Died:Connect(function()
+                        if saveTpActive then
+                            task.wait(3)
+                            giveSaveTpTool()
+                        end
+                    end)
                 end
             end)
+            
+            -- Đăng ký luôn cho nhân vật hiện tại nếu đang sống
+            local currChar = LocalPlayer.Character
+            if currChar then
+                local hum = currChar:FindFirstChild("Humanoid")
+                if hum then
+                    hum.Died:Connect(function()
+                        if saveTpActive then
+                            task.wait(3)
+                            giveSaveTpTool()
+                        end
+                    end)
+                end
+            end
         else
-            -- Tắt công tắc: Xóa tool và mất luôn tọa độ
-            if saveTpConnection then saveTpConnection:Disconnect() end
+            if charConnection then charConnection:Disconnect() end
             removeSaveTpTool()
             Rayfield:Notify({
                 Title = "Đã tắt Tool Lưu & TP",
@@ -305,6 +323,7 @@ Tab:CreateToggle({
         end
     end,
 })
+
 
 
 -- ==================== NÚT 5: CHỐNG KẸT + THANH KÉO (MAX 180) ====================
