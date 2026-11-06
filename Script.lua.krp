@@ -284,39 +284,85 @@ Tab:CreateToggle({
     end,
 })
 
--- ==================== NÚT 5: CHỐNG KẸT + THANH KÉO (MAX 180) ====================
-local antiStuckActive = false
+-- ==================== NÚT 5: TOOL CHỐNG KẸT (CK) ====================
+local antiStuckToolActive = false
 local antiStuckHeight = 80
-local antiStuckConnection = nil
+local currentAntiStuckTool = nil
+local charConnection5 = nil
 
-local function triggerAntiStuck()
-    if not antiStuckActive then return end
-    local char = LocalPlayer.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if hrp then
-        hrp.CFrame = hrp.CFrame + Vector3.new(0, antiStuckHeight, 0)
+local function giveAntiStuckTool()
+    if not antiStuckToolActive then return end
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
+    if not backpack then return end
+
+    -- Check xem trong túi đồ hoặc trên người đã có tool CK chưa
+    local existingTool = backpack:FindFirstChild("CK") or (char and char:FindFirstChild("CK"))
+    if existingTool then
+        currentAntiStuckTool = existingTool
+        return
     end
+
+    local tool = Instance.new("Tool")
+    tool.Name = "CK"
+    tool.RequiresHandle = false
+    tool.ToolTip = "Click để đẩy lên cao chống kẹt"
+
+    tool.Activated:Connect(function()
+        local currentCharacter = LocalPlayer.Character
+        local hrp = currentCharacter and currentCharacter:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            hrp.CFrame = hrp.CFrame + Vector3.new(0, antiStuckHeight, 0)
+            Rayfield:Notify({
+                Title = "Đã chống kẹt!",
+                Content = "Đã đẩy lên " .. antiStuckHeight .. " studs.",
+                Duration = 2,
+            })
+        end
+    end)
+
+    currentAntiStuckTool = tool
+    tool.Parent = backpack
 end
 
 Tab:CreateToggle({
-    Name = "5. Bật Chống Kẹt (Cấp lại sau 4s khi die/reset)",
+    Name = "5. Tool Chống Kẹt [CK] (Check túi đồ khi hồi sinh)",
     CurrentValue = false,
-    Flag = "ToggleAntiStuck",
+    Flag = "ToggleAntiStuckTool",
     Callback = function(Value)
-        antiStuckActive = Value
+        antiStuckToolActive = Value
         if Value then
-            triggerAntiStuck()
-            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-            local humanoid = char:WaitForChild("Humanoid")
-            if antiStuckConnection then antiStuckConnection:Disconnect() end
-            antiStuckConnection = humanoid.Died:Connect(function()
-                if antiStuckActive then
-                    task.wait(4)
-                    triggerAntiStuck()
-                end
+            giveAntiStuckTool()
+            if charConnection5 then charConnection5:Disconnect() end
+            
+            charConnection5 = LocalPlayer.CharacterAdded:Connect(function(newChar)
+                if not antiStuckToolActive then return end
+                task.wait(1)
+                giveAntiStuckTool()
             end)
         else
-            if antiStuckConnection then antiStuckConnection:Disconnect() end
+            if charConnection5 then charConnection5:Disconnect() end
+            if currentAntiStuckTool and currentAntiStuckTool.Parent then
+                currentAntiStuckTool:Destroy()
+            end
+            currentAntiStuckTool = nil
+            
+            local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
+            if backpack then
+                for _, v in pairs(backpack:GetChildren()) do
+                    if v.Name == "CK" then v:Destroy() end
+                end
+            end
+            local char = LocalPlayer.Character
+            if char and char:FindFirstChild("CK") then
+                char.CK:Destroy()
+            end
+
+            Rayfield:Notify({
+                Title = "Đã tắt Tool Chống Kẹt",
+                Content = "Tool đã được xóa sạch.",
+                Duration = 2,
+            })
         end
     end,
 })
@@ -330,20 +376,5 @@ Tab:CreateSlider({
     Flag = "SliderAntiStuck",
     Callback = function(Value)
         antiStuckHeight = Value
-    end,
-})
-
-Tab:CreateButton({
-    Name = "Kích hoạt đẩy chống kẹt ngay lập tức",
-    Callback = function()
-        if antiStuckActive then
-            triggerAntiStuck()
-        else
-            Rayfield:Notify({
-                Title = "Chưa bật tính năng",
-                Content = "Vui lòng bật công tắc Chống kẹt ở trên trước!",
-                Duration = 3,
-            })
-        end
     end,
 })
