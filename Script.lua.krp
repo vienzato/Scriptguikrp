@@ -3,7 +3,7 @@ local success, Rayfield = pcall(function()
 end)
 
 if not success or not Rayfield then
-    warn("Không thể tải Rayfield UI. Vui lòng kiểm tra lại kết nối mạng!")
+    warn("Không thể tải Rayfield UI.")
     return
 end
 
@@ -11,9 +11,7 @@ local Window = Rayfield:CreateWindow({
     Name = "Custom Hub - Viễn",
     LoadingTitle = "Đang khởi tạo giao diện...",
     LoadingSubtitle = "By Viễn",
-    ConfigurationSaving = {
-        Enabled = false,
-    },
+    ConfigurationSaving = { Enabled = false },
     KeySystem = false,
 })
 
@@ -22,8 +20,6 @@ local Tab = Window:CreateTab("Chính", 4483362458)
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
-
--- Lấy CoreGui an toàn trên điện thoại
 local guiParent = pcall(function() return game:GetService("CoreGui") end) and game:GetService("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
 
 -- ==================== NÚT 1: TOOL TELEPORT ====================
@@ -55,7 +51,6 @@ local function giveTpTool()
             end
         end
     end)
-    
     tool.Parent = backpack
 end
 
@@ -84,9 +79,7 @@ Tab:CreateToggle({
                 end
             end
             local char = LocalPlayer.Character
-            if char and char:FindFirstChild("TeleportTool") then
-                char.TeleportTool:Destroy()
-            end
+            if char and char:FindFirstChild("TeleportTool") then char.TeleportTool:Destroy() end
             if tpToolConnection then tpToolConnection:Disconnect() end
         end
     end,
@@ -100,9 +93,7 @@ espFolder.Parent = guiParent
 
 RunService.RenderStepped:Connect(function()
     if not espActive then
-        for _, v in pairs(espFolder:GetChildren()) do
-            v:Destroy()
-        end
+        for _, v in pairs(espFolder:GetChildren()) do v:Destroy() end
         return
     end
 
@@ -161,9 +152,7 @@ Tab:CreateToggle({
     Callback = function(Value)
         espActive = Value
         if not Value then
-            for _, v in pairs(espFolder:GetChildren()) do
-                v:Destroy()
-            end
+            for _, v in pairs(espFolder:GetChildren()) do v:Destroy() end
         end
     end,
 })
@@ -184,17 +173,13 @@ Tab:CreateToggle({
             speedConnection = RunService.RenderStepped:Connect(function()
                 local char = LocalPlayer.Character
                 local humanoid = char and char:FindFirstChild("Humanoid")
-                if humanoid then
-                    humanoid.WalkSpeed = speedVal
-                end
+                if humanoid then humanoid.WalkSpeed = speedVal end
             end)
         else
             if speedConnection then speedConnection:Disconnect() end
             local char = LocalPlayer.Character
             local humanoid = char and char:FindFirstChild("Humanoid")
-            if humanoid then
-                humanoid.WalkSpeed = 16
-            end
+            if humanoid then humanoid.WalkSpeed = 16 end
         end
     end,
 })
@@ -211,57 +196,12 @@ Tab:CreateSlider({
         if speedActive then
             local char = LocalPlayer.Character
             local humanoid = char and char:FindFirstChild("Humanoid")
-            if humanoid then
-                humanoid.WalkSpeed = speedVal
-            end
+            if humanoid then humanoid.WalkSpeed = speedVal end
         end
     end,
 })
 
-
-
--- ==================== NÚT 5: CHỐNG KẸT + THANH KÉO (MAX 180) ====================
-local antiStuckActive = false
-local antiStuckHeight = 80
-local antiStuckConnection = nil
-
-local function triggerAntiStuck()
-    if not antiStuckActive then return end
-    local char = LocalPlayer.Character
-    local hrp = char and char:FindFirstChild("HumanoidRootPart")
-    if hrp then
-        hrp.CFrame = hrp.CFrame + Vector3.new(0, antiStuckHeight, 0)
-    end
-end
-
-Tab:CreateToggle({
-    Name = "5. Bật Chống Kẹt (Cấp lại sau 4s khi die/reset)",
-    CurrentValue = false,
-    Flag = "ToggleAntiStuck",
-    Callback = function(Value)
-        antiStuckActive = Value
-        if Value then
-            triggerAntiStuck()
-            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-            local humanoid = char:WaitForChild("Humanoid")
-            if antiStuckConnection then antiStuckConnection:Disconnect() end
-            antiStuckConnection = humanoid.Died:Connect(function()
-                if antiStuckActive then
-                    task.wait(4)
-                    triggerAntiStuck()
-                end
-            end)
-        else
-            if antiStuckConnection then antiStuckConnection:Disconnect() end
-        end
-    end,
-})
-
-Tab:CreateSlider({
-    Name = "Độ cao đẩy chống kẹt (Tối đa 180)",
-    Range = {10, 180},
-    Increment = 1,
-    Suffix = "Studs"-- ==================== NÚT 4: TOOL LƯU & TP VĨNH VIỄN (GIỮ TỌA ĐỘ KHI HỒI SINH) ====================
+-- ==================== NÚT 4: TOOL LƯU & TP VĨNH VIỄN ====================
 local saveTpActive = false
 local savedCFrame = nil
 local currentSaveTool = nil
@@ -273,20 +213,18 @@ local function giveSaveTpTool()
     local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
     if not backpack then return end
 
-    -- Xóa tool cũ trong balo nếu có
     if currentSaveTool and currentSaveTool.Parent then
         currentSaveTool:Destroy()
     end
 
     local tool = Instance.new("Tool")
-    
-    -- Nếu đã từng lưu tọa độ trước đó thì cấp lại tool dưới dạng Tool TP
+    tool.RequiresHandle = false
+
     if savedCFrame then
         tool.Name = "TP"
         tool.ToolTip = "Click để dịch chuyển về vị trí đã lưu"
     else
         tool.Name = "SaveTpTool"
-        tool.RequiresHandle = false
         tool.ToolTip = "Click lần 1: Lưu tọa độ vĩnh viễn | Click lần 2+: Dịch chuyển"
     end
 
@@ -296,7 +234,6 @@ local function giveSaveTpTool()
         if not hrp then return end
 
         if not savedCFrame then
-            -- Lưu tọa độ lần đầu duy nhất và đổi tên thành TP
             savedCFrame = hrp.CFrame
             tool.Name = "TP"
             tool.ToolTip = "Click để dịch chuyển về vị trí đã lưu"
@@ -306,7 +243,6 @@ local function giveSaveTpTool()
                 Duration = 3,
             })
         else
-            -- TP về vị trí đã lưu cũ
             hrp.CFrame = savedCFrame
         end
     end)
@@ -371,7 +307,49 @@ Tab:CreateToggle({
         end
     end,
 })
-,
+
+-- ==================== NÚT 5: CHỐNG KẸT + THANH KÉO (MAX 180) ====================
+local antiStuckActive = false
+local antiStuckHeight = 80
+local antiStuckConnection = nil
+
+local function triggerAntiStuck()
+    if not antiStuckActive then return end
+    local char = LocalPlayer.Character
+    local hrp = char and char:FindFirstChild("HumanoidRootPart")
+    if hrp then
+        hrp.CFrame = hrp.CFrame + Vector3.new(0, antiStuckHeight, 0)
+    end
+end
+
+Tab:CreateToggle({
+    Name = "5. Bật Chống Kẹt (Cấp lại sau 4s khi die/reset)",
+    CurrentValue = false,
+    Flag = "ToggleAntiStuck",
+    Callback = function(Value)
+        antiStuckActive = Value
+        if Value then
+            triggerAntiStuck()
+            local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+            local humanoid = char:WaitForChild("Humanoid")
+            if antiStuckConnection then antiStuckConnection:Disconnect() end
+            antiStuckConnection = humanoid.Died:Connect(function()
+                if antiStuckActive then
+                    task.wait(4)
+                    triggerAntiStuck()
+                end
+            end)
+        else
+            if antiStuckConnection then antiStuckConnection:Disconnect() end
+        end
+    end,
+})
+
+Tab:CreateSlider({
+    Name = "Độ cao đẩy chống kẹt (Tối đa 180)",
+    Range = {10, 180},
+    Increment = 1,
+    Suffix = "Studs",
     CurrentValue = 80,
     Flag = "SliderAntiStuck",
     Callback = function(Value)
