@@ -239,11 +239,6 @@ local function giveSaveTpTool()
             savedCFrame = hrp.CFrame
             tool.Name = "TP"
             tool.ToolTip = "Click để dịch chuyển về vị trí đã lưu"
-            Rayfield:Notify({
-                Title = "Đã lưu tọa độ vĩnh viễn!",
-                Content = "Tool đã đổi thành [TP]. Click tiếp để dịch chuyển.",
-                Duration = 3,
-            })
         else
             hrp.CFrame = savedCFrame
         end
@@ -275,11 +270,6 @@ Tab:CreateToggle({
                 currentSaveTool:Destroy()
             end
             currentSaveTool = nil
-            Rayfield:Notify({
-                Title = "Đã tắt Tool Lưu & TP",
-                Content = "Tool và tọa độ đã được xóa sạch.",
-                Duration = 2,
-            })
         end
     end,
 })
@@ -296,7 +286,6 @@ local function giveAntiStuckTool()
     local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
     if not backpack then return end
 
-    -- Check xem trong túi đồ hoặc trên người đã có tool CK chưa
     local existingTool = backpack:FindFirstChild("CK") or (char and char:FindFirstChild("CK"))
     if existingTool then
         currentAntiStuckTool = existingTool
@@ -313,11 +302,6 @@ local function giveAntiStuckTool()
         local hrp = currentCharacter and currentCharacter:FindFirstChild("HumanoidRootPart")
         if hrp then
             hrp.CFrame = hrp.CFrame + Vector3.new(0, antiStuckHeight, 0)
-            Rayfield:Notify({
-                Title = "Đã chống kẹt!",
-                Content = "Đã đẩy lên " .. antiStuckHeight .. " studs.",
-                Duration = 2,
-            })
         end
     end)
 
@@ -357,12 +341,6 @@ Tab:CreateToggle({
             if char and char:FindFirstChild("CK") then
                 char.CK:Destroy()
             end
-
-            Rayfield:Notify({
-                Title = "Đã tắt Tool Chống Kẹt",
-                Content = "Tool đã được xóa sạch.",
-                Duration = 2,
-            })
         end
     end,
 })
