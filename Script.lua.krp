@@ -218,112 +218,6 @@ Tab:CreateSlider({
     end,
 })
 
--- ==================== NÚT 4: TOOL LƯU & TP VĨNH VIỄN (FIXED DIED) ====================
-local saveTpActive = false
-local savedCFrame = nil
-local currentSaveTool = nil
-local charConnection = nil
-
-local function removeSaveTpTool()
-    savedCFrame = nil
-    if currentSaveTool and currentSaveTool.Parent then
-        currentSaveTool:Destroy()
-    end
-    currentSaveTool = nil
-end
-
-local function giveSaveTpTool()
-    if not saveTpActive then return end
-    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded
-    if not char then return end
-    local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
-    if not backpack then return end
-
-    removeSaveTpTool()
-
-    local tool = Instance.new("Tool")
-    tool.Name = "SaveTpTool"
-    tool.RequiresHandle = false
-    tool.ToolTip = "Click lần 1: Lưu tọa độ vĩnh viễn | Click lần 2+: Dịch chuyển"
-
-    tool.Activated:Connect(function()
-        local currentCharacter = LocalPlayer.Character
-        local hrp = currentCharacter and currentCharacter:FindFirstChild("HumanoidRootPart")
-        if not hrp then return end
-
-        if not savedCFrame then
-            savedCFrame = hrp.CFrame
-            tool.Name = "TP"
-            tool.ToolTip = "Click để dịch chuyển về vị trí đã lưu"
-            Rayfield:Notify({
-                Title = "Đã lưu tọa độ vĩnh viễn!",
-                Content = "Tool đã đổi thành [TP]. Click tiếp để dịch chuyển.",
-                Duration = 3,
-            })
-        else
-            hrp.CFrame = savedCFrame
-        end
-    end)
-
-    tool.Destroying:Connect(function()
-        if currentSaveTool == tool then
-            currentSaveTool = nil
-        end
-    end)
-
-    currentSaveTool = tool
-    tool.Parent = backpack
-end
-
-Tab:CreateToggle({
-    Name = "4. Tool Lưu & TP Tọa Độ (Cấp lại sau 3s khi die/reset)",
-    CurrentValue = false,
-    Flag = "ToggleSaveTpTool",
-    Callback = function(Value)
-        saveTpActive = Value
-        if Value then
-            giveSaveTpTool()
-            if charConnection then charConnection:Disconnect() end
-            
-            -- Lắng nghe mỗi khi nhân vật chết và hồi sinh
-            charConnection = LocalPlayer.CharacterAdded:Connect(function(newChar)
-                if not saveTpActive then return end
-                local humanoid = newChar:WaitForChild("Humanoid", 5)
-                if humanoid then
-                    humanoid.Died:Connect(function()
-                        if saveTpActive then
-                            task.wait(3)
-                            giveSaveTpTool()
-                        end
-                    end)
-                end
-            end)
-            
-            -- Đăng ký luôn cho nhân vật hiện tại nếu đang sống
-            local currChar = LocalPlayer.Character
-            if currChar then
-                local hum = currChar:FindFirstChild("Humanoid")
-                if hum then
-                    hum.Died:Connect(function()
-                        if saveTpActive then
-                            task.wait(3)
-                            giveSaveTpTool()
-                        end
-                    end)
-                end
-            end
-        else
-            if charConnection then charConnection:Disconnect() end
-            removeSaveTpTool()
-            Rayfield:Notify({
-                Title = "Đã tắt Tool Lưu & TP",
-                Content = "Tool và tọa độ đã được xóa sạch.",
-                Duration = 2,
-            })
-        end
-    end,
-})
-
 
 
 -- ==================== NÚT 5: CHỐNG KẸT + THANH KÉO (MAX 180) ====================
@@ -367,7 +261,117 @@ Tab:CreateSlider({
     Name = "Độ cao đẩy chống kẹt (Tối đa 180)",
     Range = {10, 180},
     Increment = 1,
-    Suffix = "Studs",
+    Suffix = "Studs"-- ==================== NÚT 4: TOOL LƯU & TP VĨNH VIỄN (GIỮ TỌA ĐỘ KHI HỒI SINH) ====================
+local saveTpActive = false
+local savedCFrame = nil
+local currentSaveTool = nil
+local charConnection = nil
+
+local function giveSaveTpTool()
+    if not saveTpActive then return end
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
+    if not backpack then return end
+
+    -- Xóa tool cũ trong balo nếu có
+    if currentSaveTool and currentSaveTool.Parent then
+        currentSaveTool:Destroy()
+    end
+
+    local tool = Instance.new("Tool")
+    
+    -- Nếu đã từng lưu tọa độ trước đó thì cấp lại tool dưới dạng Tool TP
+    if savedCFrame then
+        tool.Name = "TP"
+        tool.ToolTip = "Click để dịch chuyển về vị trí đã lưu"
+    else
+        tool.Name = "SaveTpTool"
+        tool.RequiresHandle = false
+        tool.ToolTip = "Click lần 1: Lưu tọa độ vĩnh viễn | Click lần 2+: Dịch chuyển"
+    end
+
+    tool.Activated:Connect(function()
+        local currentCharacter = LocalPlayer.Character
+        local hrp = currentCharacter and currentCharacter:FindFirstChild("HumanoidRootPart")
+        if not hrp then return end
+
+        if not savedCFrame then
+            -- Lưu tọa độ lần đầu duy nhất và đổi tên thành TP
+            savedCFrame = hrp.CFrame
+            tool.Name = "TP"
+            tool.ToolTip = "Click để dịch chuyển về vị trí đã lưu"
+            Rayfield:Notify({
+                Title = "Đã lưu tọa độ vĩnh viễn!",
+                Content = "Tool đã đổi thành [TP]. Click tiếp để dịch chuyển.",
+                Duration = 3,
+            })
+        else
+            -- TP về vị trí đã lưu cũ
+            hrp.CFrame = savedCFrame
+        end
+    end)
+
+    tool.Destroying:Connect(function()
+        if currentSaveTool == tool then
+            currentSaveTool = nil
+        end
+    end)
+
+    currentSaveTool = tool
+    tool.Parent = backpack
+end
+
+Tab:CreateToggle({
+    Name = "4. Tool Lưu & TP Tọa Độ (Cấp lại sau 3s khi die/reset)",
+    CurrentValue = false,
+    Flag = "ToggleSaveTpTool",
+    Callback = function(Value)
+        saveTpActive = Value
+        if Value then
+            giveSaveTpTool()
+            if charConnection then charConnection:Disconnect() end
+            
+            charConnection = LocalPlayer.CharacterAdded:Connect(function(newChar)
+                if not saveTpActive then return end
+                local humanoid = newChar:WaitForChild("Humanoid", 5)
+                if humanoid then
+                    humanoid.Died:Connect(function()
+                        if saveTpActive then
+                            task.wait(3)
+                            giveSaveTpTool()
+                        end
+                    end)
+                end
+            end)
+            
+            local currChar = LocalPlayer.Character
+            if currChar then
+                local hum = currChar:FindFirstChild("Humanoid")
+                if hum then
+                    hum.Died:Connect(function()
+                        if saveTpActive then
+                            task.wait(3)
+                            giveSaveTpTool()
+                        end
+                    end)
+                end
+            end
+        else
+            if charConnection then charConnection:Disconnect() end
+            savedCFrame = nil
+            if currentSaveTool and currentSaveTool.Parent then
+                currentSaveTool:Destroy()
+            end
+            currentSaveTool = nil
+            Rayfield:Notify({
+                Title = "Đã tắt Tool Lưu & TP",
+                Content = "Tool và tọa độ đã được xóa sạch.",
+                Duration = 2,
+            })
+        end
+    end,
+})
+,
     CurrentValue = 80,
     Flag = "SliderAntiStuck",
     Callback = function(Value)
