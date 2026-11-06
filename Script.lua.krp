@@ -213,7 +213,6 @@ local function giveSaveTpTool()
     local backpack = LocalPlayer:FindFirstChildOfClass("Backpack")
     if not backpack then return end
 
-    -- Check xem trong túi hoặc trên người có sẵn tool chưa, nếu có thì giữ nguyên
     local existingTool = backpack:FindFirstChild("SaveTpTool") or backpack:FindFirstChild("TP") or (char and (char:FindFirstChild("SaveTpTool") or char:FindFirstChild("TP")))
     if existingTool then
         currentSaveTool = existingTool
