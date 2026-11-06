@@ -8,9 +8,9 @@ if not success or not Rayfield then
 end
 
 local Window = Rayfield:CreateWindow({
-    Name = "Custom Hub - Viễn",
-    LoadingTitle = "",
-    LoadingSubtitle = "",
+    Name = "KRP Hub",
+    LoadingTitle = "u",
+    LoadingSubtitle = "i",
     ConfigurationSaving = { Enabled = false },
     KeySystem = false,
     DisableRayfieldPrompts = true,
