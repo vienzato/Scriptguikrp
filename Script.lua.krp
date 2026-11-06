@@ -9,8 +9,8 @@ end
 
 local Window = Rayfield:CreateWindow({
     Name = "KRP Hub",
-    LoadingTitle = "u",
-    LoadingSubtitle = "i",
+    LoadingTitle = "Đang Tải...",
+    LoadingSubtitle = "Đã Tải Xong",
     ConfigurationSaving = { Enabled = false },
     KeySystem = false,
     DisableRayfieldPrompts = true,
