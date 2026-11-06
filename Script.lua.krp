@@ -40,7 +40,7 @@ local function giveTpTool()
     if char:FindFirstChild("TeleportTool") then char.TeleportTool:Destroy() end
 
     local tool = Instance.new("Tool")
-    tool.Name = "TeleportTool"
+    tool.Name = "Công Cụ TP"
     tool.RequiresHandle = false
     tool.ToolTip = "Click chuột bất kỳ để dịch chuyển"
     
@@ -57,7 +57,7 @@ local function giveTpTool()
 end
 
 Tab:CreateToggle({
-    Name = "1. Tool Teleport (Cấp lại sau 3s khi die/reset)",
+    Name = "Cấp Công Cụ TP",
     CurrentValue = false,
     Flag = "ToggleTPTool",
     Callback = function(Value)
@@ -148,7 +148,7 @@ RunService.RenderStepped:Connect(function()
 end)
 
 Tab:CreateToggle({
-    Name = "2. Hiển thị ESP Tên & Khoảng cách người chơi",
+    Name = "Nhìn Thấy Tất Cả Người Chơi",
     CurrentValue = false,
     Flag = "ToggleESP",
     Callback = function(Value)
@@ -165,7 +165,7 @@ local speedVal = 16
 local speedConnection = nil
 
 Tab:CreateToggle({
-    Name = "3. Bật Tốc Độ Nhanh",
+    Name = "Chạy Nhanh",
     CurrentValue = false,
     Flag = "ToggleSpeed",
     Callback = function(Value)
@@ -225,10 +225,10 @@ local function giveSaveTpTool()
     tool.RequiresHandle = false
 
     if savedCFrame then
-        tool.Name = "TP"
+        tool.Name = "chế Độ Dịch chuyển"
         tool.ToolTip = "Click để dịch chuyển về vị trí đã lưu"
     else
-        tool.Name = "SaveTpTool"
+        tool.Name = "Chế độ Lưu"
         tool.ToolTip = "Click lần 1: Lưu tọa độ vĩnh viễn | Click lần 2+: Dịch chuyển"
     end
 
@@ -239,7 +239,7 @@ local function giveSaveTpTool()
 
         if not savedCFrame then
             savedCFrame = hrp.CFrame
-            tool.Name = "TP"
+            tool.Name = "chế Độ Dịch chuyển"
             tool.ToolTip = "Click để dịch chuyển về vị trí đã lưu"
         else
             hrp.CFrame = savedCFrame
@@ -251,7 +251,7 @@ local function giveSaveTpTool()
 end
 
 Tab:CreateToggle({
-    Name = "4. Tool Lưu & TP Tọa Độ (Check túi đồ khi hồi sinh)",
+    Name = "Lưu Và Tp",
     CurrentValue = false,
     Flag = "ToggleSaveTpTool",
     Callback = function(Value)
@@ -295,9 +295,9 @@ local function giveAntiStuckTool()
     end
 
     local tool = Instance.new("Tool")
-    tool.Name = "CK"
+    tool.Name = "Chống Kẹt"
     tool.RequiresHandle = false
-    tool.ToolTip = "Click để đẩy lên cao chống kẹt"
+    tool.ToolTip = "Click để đẩy lên cao"
 
     tool.Activated:Connect(function()
         local currentCharacter = LocalPlayer.Character
@@ -312,7 +312,7 @@ local function giveAntiStuckTool()
 end
 
 Tab:CreateToggle({
-    Name = "5. Tool Chống Kẹt [CK] (Check túi đồ khi hồi sinh)",
+    Name = "Cấp Công Cụ Đẩy lên",
     CurrentValue = false,
     Flag = "ToggleAntiStuckTool",
     Callback = function(Value)
